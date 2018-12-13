@@ -3,7 +3,7 @@ import qSonify.qc as qc
 
 def alg_to_song(algorithm, num_qubits=None, 
                 num_samples=40, backend=qc.simulator, 
-                markovian=False, mapping=maps.default_map, 
+                markovian=True, mapping=maps.default_map, 
                 name="alg", tempo=100):
     """
     Make a song from an algorithm.

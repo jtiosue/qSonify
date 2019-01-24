@@ -1,4 +1,4 @@
-from qSonify import Song, freq_to_note
+from qSonify.sonify import Song, freq_to_note
 
 def frequencymapping(low_freq=300, base=2):
     """ map output of algorithm to two tracks """

@@ -1,4 +1,4 @@
-from qSonify import Song
+from qSonify.sonify import Song
 
 def scale(notes=("c", "d", "e", "f", "g", "a", "b", "c5")):
     """

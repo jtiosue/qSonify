@@ -1,4 +1,4 @@
-from qSonify import Song
+from qSonify.sonify import Song
 
 def fermionic(notes=("c", "d", "e", "f", "g")):
     """

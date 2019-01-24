@@ -1,4 +1,4 @@
-from qSonify import Song
+from qSonify.sonify import Song
 
 def stringquartet():
     """ map output of algorithm to bass, tenor, treble, and treble clef """

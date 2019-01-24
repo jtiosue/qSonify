@@ -1,4 +1,4 @@
-from qSonify import Song
+from qSonify.sonify import Song
 
 def grandpiano(low_notes=("c3", "d3", "e3"), high_notes=("c", "d", "e")):
     """ map output of algorithm to two tracks """

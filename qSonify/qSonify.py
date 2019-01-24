@@ -1,23 +1,25 @@
-import qSonify.maps as maps
-import qSonify.qc as qc
+from qSonify import maps
+from qSonify.qc.register import Register
+from qSonify.qc.gates import string_to_gate
+from qSonify.qc.algorithms import prepare_basis_state
+
 
 def alg_to_song(algorithm, num_qubits=None, 
-                num_samples=40, backend=qc.simulator, 
-                markovian=True, mapping=maps.default_map, 
+                num_samples=40, mapping=maps.default_map, 
                 name="alg", tempo=100):
     """
-    Make a song from an algorithm.
+    Make a song from an algorithm. Markovian sample the algorithm, then map
+    to a Song object.
     
-    algorithm: algorithm (list of strings), NOT a list of algorithms, 
-               each string is a gate in GATE_ARGUMENTS.keys() with whatever 
-               arguments required to define the gate.
-    num_qubits: int, number of qubits to run each algorithm on.
+    algorithm: list of Gate objects and/or string gates. Example:
+                  ["cx(0, 1)", 
+                   "x(0)", 
+                   qSonify.Gate(unitary=[[...], ...], qubits=(1, 2))
+                  ]
+    num_qubits: int, number of qubits to run each algorithm on. If num_qubits
+                     is None, then it will run on the minimum required.
     num_samples: int, number of samples to take from the quantum computer,
                       for most mappings this is equal to the number of beats.
-    backend: str, IBM backend to run the algorithm on. If backend is not
-                  a local simulator then credentials must have already
-                  been applied.
-    markovian: bool, whether to sample using qc.sample or qc.markovian_sample.
     mapping: function, which mapping from output to sound to use. Can either 
                        use the ones already defined (ie maps.[map name](args)), 
                        or create your own mapping function. mapping must take
@@ -26,9 +28,30 @@ def alg_to_song(algorithm, num_qubits=None,
     name: str, name of song.
     tempo: int, tempo of song.
                   
-    returns: Song object
+    returns: qSonify.Song object
     """
-    sample_f = qc.markovian_sample if markovian else qc.sample
-    res = sample_f(algorithm, num_qubits=num_qubits, 
-                   num_samples=num_samples, backend=backend)
+    algorithm = algorithm.copy()
+    for i, g in enumerate(algorithm):
+        if isinstance(g, str): algorithm[i] = string_to_gate(g)
+    
+    r = Register(num_qubits)
+    r.apply_algorithm(algorithm)
+    s = r.single_sample()
+    
+    num_qubits = len(s) # in case num_qubits was None
+    
+    registers = {"0"*num_qubits: r}
+    res = [s] + [""] * (num_samples - 1)
+    
+    for i in range(1, num_samples):
+        start = res[i-1]
+        if start not in registers: 
+            r = Register(num_qubits)
+            r.apply_str_algorithm(prepare_basis_state(start))
+            r.apply_algorithm(algorithm)
+            registers[start] = r
+        res[i] = registers[start].single_sample()
+            
     return mapping(res, name=name, tempo=tempo)
+        
+    

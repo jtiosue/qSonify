@@ -1,6 +1,6 @@
 from qSonify import maps
 from qSonify.qc.register import Register
-from qSonify.qc.gates import string_to_gate
+from qSonify.qc.gates import str_to_gate
 from qSonify.qc.algorithms import prepare_basis_state
 
 
@@ -30,9 +30,13 @@ def alg_to_song(algorithm, num_qubits=None,
                   
     returns: qSonify.Song object
     """
+    
+    # don't need to convert from strings to gates here, because that is done
+    # inside the Register class. But this saves the time of constantly
+    # remaking the gates.
     algorithm = algorithm.copy()
     for i, g in enumerate(algorithm):
-        if isinstance(g, str): algorithm[i] = string_to_gate(g)
+        if isinstance(g, str): algorithm[i] = str_to_gate(g)
     
     r = Register(num_qubits)
     r.apply_algorithm(algorithm)
@@ -47,8 +51,7 @@ def alg_to_song(algorithm, num_qubits=None,
         start = res[i-1]
         if start not in registers: 
             r = Register(num_qubits)
-            r.apply_str_algorithm(prepare_basis_state(start))
-            r.apply_algorithm(algorithm)
+            r.apply_algorithm(prepare_basis_state(start) + algorithm)
             registers[start] = r
         res[i] = registers[start].single_sample()
             

@@ -1,5 +1,5 @@
 import numpy as np
-from qSonify.qc.gates import apply_algorithm
+from qSonify.qc.gates import str_to_gate
 
 
 def all_states(num_qubits):
@@ -93,9 +93,13 @@ class Register(dict):
         """ 
         apply Gate object to the register 
         
-        gate: Gate object.
+        gate: Gate object or str gate.
         return: None.
         """
+        if isinstance(gate, str):
+            self.apply_gate(str_to_gate(gate))
+            return
+        
         m = max(gate.qubits)
         if m >= self.num_qubits:
             if not self.grow:
@@ -207,30 +211,16 @@ class Register(dict):
         """
         ket = self.ket()
         return ket @ np.conjugate(np.transpose(ket))
-    
-    def apply_str_gate(self, gate):
-        """
-        Apply the gate to the register.
-        
-        gate: str.
-        return: None.
-        """
-        self.apply_algorithm([gate])
-        
-    def apply_str_algorithm(self, algorithm):
-        """
-        Apply the algorithm to the register.
-        
-        algorithm: list of strs.
-        return: None.
-        """
-        apply_algorithm(algorithm, self)
         
     def apply_algorithm(self, algorithm):
         """
         Apply the algorithm to the register
         
-        algorithm: list of Gate objects.
+        algorithm: list of Gate objects and/or string gates. Example:
+                      ["cx(0, 1)", 
+                       "x(0)", 
+                       qSonify.Gate(unitary=[[...], ...], qubits=(1, 2))
+                      ]
         return: None
         """
-        for gate in algorithm: gate(self)
+        for gate in algorithm: self.apply_gate(gate)

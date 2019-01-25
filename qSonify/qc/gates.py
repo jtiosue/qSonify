@@ -237,14 +237,14 @@ class IQFT(Gate):
         return "IQFT" + str(self.qubits)
     
 
-def string_to_gate(string):
+def str_to_gate(string):
     return eval(string.upper())
 
 
 def apply_gate(string, register):
     """ apply the gate represented by string to the register """
-    string_to_gate(string)(register)
+    str_to_gate(string)(register)
 
 
-def apply_algorithm(algorithm, register):
-    for gate in algorithm: apply_gate(gate, register)
+#def apply_str_algorithm(algorithm, register):
+#    for gate in algorithm: apply_gate(gate, register)

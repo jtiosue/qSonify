@@ -7,6 +7,8 @@ sigma_x = [[0, 1], [1, 0]]
 sigma_y = [[0, -1j], [1j, 0]]
 sigma_z = [[1, 0], [0, -1]]
 
+array = lambda x: np.array(x, dtype=np.complex)
+
 
 class Gate:
 
@@ -15,8 +17,9 @@ class Gate:
         unitary: list of list representing unitary matrix
         qubits: tuple in order of qubits that unitary acts on
         """
-        self.unitary, self.qubits = np.array(unitary, dtype=np.complex), qubits
+        self.unitary, self.qubits = array(unitary), qubits
         self.dimension, self.num_qubits = len(unitary), len(qubits)
+        self.str = "Unitary"
         if self.dimension != 1 << self.num_qubits:
             raise ValueError("Gate untary must be 2^n x 2^n")
 
@@ -51,7 +54,10 @@ class Gate:
     def __str__(self):
         s = str(self.qubits)
         if len(self.qubits) == 1: s = s.replace(",", "")
-        return "Unitary" + str(self.qubits)
+        return self.str + str(self.qubits)
+    
+    def __repr__(self):
+        return str(self)
 
     # def __mul__(self, other):
     #     """ self * other """
@@ -60,8 +66,8 @@ class Gate:
 
 
 class H(Gate):
-    c = 1.0/2.0**0.5 + 0.0j
-    unitary = np.array([
+    c = 1.0/2.0**0.5
+    unitary = array([
         [c, c],
         [c, -c]
     ])
@@ -72,11 +78,11 @@ class H(Gate):
         return "H(%d)" % self.qubits[0]
 
 class CX(Gate):
-    unitary = np.array([
-        [1.0, 0.0, 0.0, 0.0],
-        [0.0, 1.0, 0.0, 0.0],
-        [0.0, 0.0, 0.0, 1.0],
-        [0.0, 0.0, 1.0, 0.0]
+    unitary = array([
+        [1, 0, 0, 0],
+        [0, 1, 0, 0],
+        [0, 0, 0, 1],
+        [0, 0, 1, 0]
     ])
     def __init__(self, control_qubit, target_qubit):
         # qubits should be tuple (control, target)
@@ -84,37 +90,50 @@ class CX(Gate):
 
     def __str__(self):
         return "CX" + str(self.qubits)
+    
+class CCX(Gate):
+    unitary = np.eye(8, dtype=np.complex)
+    unitary[7][7], unitary[6][6] = 0, 0
+    unitary[7][6], unitary[6][7] = 1, 1
+    def __init__(self, control_qubit0, control_qubit1, target_qubit):
+        # qubits should be tuple (control, target)
+        super().__init__(
+            CCX.unitary, (control_qubit0, control_qubit1, target_qubit)
+        )
+
+    def __str__(self):
+        return "CCX" + str(self.qubits)
 
 class X(Gate):
-    unitary = np.array(sigma_x)
+    unitary = array(sigma_x)
     def __init__(self, qubit):
         super().__init__(X.unitary, (qubit,))
 
     def __str__(self):
-        return "X%d" % self.qubits[0]
+        return "X(%d)" % self.qubits[0]
 
 class Y(Gate):
-    unitary = np.array(sigma_y)
+    unitary = array(sigma_y)
     def __init__(self, qubit):
         super().__init__(Y.unitary, (qubit,))
 
     def __str__(self):
-        return "Y%d" % self.qubits[0]
+        return "Y(%d)" % self.qubits[0]
 
 class Z(Gate):
-    unitary = np.array(sigma_z)
+    unitary = array(sigma_z)
     def __init__(self, qubit):
         super().__init__(Z.unitary, (qubit,))
 
     def __str__(self):
-        return "Z%d" % self.qubits[0]
+        return "Z(%d)" % self.qubits[0]
 
 class T(Gate):
     unitary = [[0.0]*8 for _ in range(8)]
     for i in range(6): unitary[i][i] = 1.0
     unitary[6][7] = 1.0
     unitary[7][6] = 1.0
-    unitary = np.array(unitary)
+    unitary = array(unitary)
     def __init__(self, *qubits):
         """ qubits should be a tuple of length 3 """
         super().__init__(T.unitary, qubits)
@@ -123,11 +142,11 @@ class T(Gate):
         return "T" + str(self.qubits)
 
 class SWAP(Gate):
-    unitary = np.array([
-        [1.0, 0.0, 0.0, 0.0],
-        [0.0, 0.0, 1.0, 0.0],
-        [0.0, 1.0, 0.0, 0.0],
-        [0.0, 0.0, 0.0, 1.0]
+    unitary = array([
+        [1, 0, 0, 0],
+        [0, 0, 1, 0],
+        [0, 1, 0, 0],
+        [0, 0, 0, 1]
     ])
     def __init__(self, *qubits):
         """ swap two qubits. qubits should be tuple of length 2 """
@@ -137,11 +156,11 @@ class SWAP(Gate):
         return "SWAP" + str(self.qubits)
 
 class CRZ(Gate):
-    unitary = lambda angle: np.array([
-        [1.0, 0.0, 0.0, 0.0],
-        [0.0, 1.0, 0.0, 0.0],
-        [0.0, 0.0, 1.0, 0.0],
-        [0.0, 0.0, 0.0, exp(1.0j*angle)]
+    unitary = lambda angle: array([
+        [1, 0, 0, 0],
+        [0, 1, 0, 0],
+        [0, 0, 1, 0],
+        [0, 0, 0, exp(1.0j*angle)]
     ])
     def __init__(self, angle, control_qubit, target_qubit):
         qubits = (control_qubit, target_qubit)
@@ -183,7 +202,7 @@ class RZ(Gate):
     
 class U3(Gate):
     """ u3(th, phi, lam) = Rz(phi)Ry(th)Rz(lam), see arxiv:1707.03429 """
-    unitary = lambda theta, phi, lam: np.array([
+    unitary = lambda theta, phi, lam: array([
         [exp(-1j*(phi+lam)/2)*cos(theta/2), 
          -exp(-1j*(phi-lam)/2)*sin(theta/2)],
         [exp(1j*(phi-lam)/2)*sin(theta/2), 

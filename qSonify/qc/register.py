@@ -71,23 +71,41 @@ class Register(dict):
     def probability(self, state):
         return abs(self[state])**2
     
-    def get_prob_dist(self, qubits=None):
+    def get_prob_dist(self, qubits=None, decimal=False, rounded=0):
         """
         Get the probability distribution for measuring the qubits.
         
         qubits: tuple, qubits for the distrubution. If qubits is None, then
                        will find the distribution over all the qubits.
+        decimal: bool, whether to represents states in qubits (binary) form or
+                       decimal form.
+        rounded: int, whether to round the probabilites. If rounded is 0 then
+                      the probabilities will not be rounded, otherwise rounded
+                      should be an integer representing how many digits to 
+                      round to.
         return: dict, states mapped to probabilities.
         """
-        if qubits is None: 
-            return {state: self.probability(state) for state in self}
+        if qubits is None:
+            if decimal: 
+                prob_dist = {int(s, base=2): self.probability(s) for s in self}
+            else: 
+                prob_dist = {s: self.probability(s) for s in self}
         
-        prob_dist = {}
-        for state in self:
-            s = get_sub_state(state, qubits)
-            prob_dist[s] = prob_dist.get(s, 0) + self.probability(state)
+        else:
+            prob_dist = {}
+            for state in self:
+                s = get_sub_state(state, qubits)
+                if decimal: s = int(s, base=2)
+                prob_dist[s] = prob_dist.get(s, 0) + self.probability(state)
+            
+        if rounded:
+            prob_dist = {
+                k: round(v, rounded) for k, v in prob_dist.items()
+                if round(v, rounded)
+            }
             
         return prob_dist
+        
 
     def apply_gate(self, gate):
         """ 
@@ -224,3 +242,8 @@ class Register(dict):
         return: None
         """
         for gate in algorithm: self.apply_gate(gate)
+        
+    def reset(self):
+        """ Reset the register to the state |00...> """
+        self.clear()
+        self["0"*self.num_qubits] = 1.0+0.0j

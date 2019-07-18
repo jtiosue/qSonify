@@ -29,18 +29,17 @@ _midi_mapping = _create_midi_mapping()
 
 class Song(MIDIFile):
     _valid = tuple, list, type(x for x in range(1))
-    def __init__(self, name="test", tempo=100, path="output/", num_tracks=1):
+    def __init__(self, name="test", tempo=100, num_tracks=1):
         """
         Intialize Song object.
         name: str, name of song/file.
         tempo: int, bpm of song.
-        path: str, where to save the file.
         num_tracks: int, number of tracks for the midi file to have.
         """
         super().__init__(num_tracks)
         self.name, self.tempo, self.volume = name, tempo, 100
-        self.filename = "%s.mid" % (path + name)
-        self.path, track, self.channel = path, 0, 0
+        self.filename = "%s.mid" % name
+        track, self.channel = 0, 0
         self.time = [0]*num_tracks # start each track at the beginning
         self.addTempo(track, self.time[0], self.tempo)
         
@@ -85,14 +84,17 @@ class Song(MIDIFile):
         super().addText(track, self.time[track], str(text))
         self.need_to_write = True
         
-    def writeFile(self):
-        """ Write the current midi track to a file """
+    def writeFile(self, path=""):
+        """ 
+        Write the current midi track to a file 
+        path: str, path to write the file to. Must end with a "/"!
+        """
         if not self.need_to_write: return
         try:
-            with open(self.filename, "wb") as f: super().writeFile(f)
+            with open(path+self.filename, "wb") as f: super().writeFile(f)
         except FileNotFoundError:
-            os.mkdir(self.path)
-            with open(self.filename, "wb") as f: super().writeFile(f)
+            os.mkdir(path)
+            with open(path+self.filename, "wb") as f: super().writeFile(f)
         self.need_to_write = False
             
     def play(self):

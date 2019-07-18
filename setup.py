@@ -24,7 +24,7 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url="https://github.com/jiosue/qsonify",
     license=license_text,
-    packages=setuptools.find_packages(exclude=("tests", "docs")),
+    packages=setuptools.find_packages(exclude=("tests", "docs", "outputs")),
     test_suite="tests",
     install_requires=requirements,
     classifiers=[

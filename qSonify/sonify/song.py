@@ -39,6 +39,7 @@ class Song(MIDIFile):
         super().__init__(num_tracks)
         self.name, self.tempo, self.volume = name, tempo, 100
         self.filename = "%s.mid" % name
+        self.path = ""
         track, self.channel = 0, 0
         self.time = [0]*num_tracks # start each track at the beginning
         self.addTempo(track, self.time[0], self.tempo)
@@ -96,15 +97,19 @@ class Song(MIDIFile):
             os.mkdir(path)
             with open(path+self.filename, "wb") as f: super().writeFile(f)
         self.need_to_write = False
+        self.path = path
             
-    def play(self):
+    def play(self, path=""):
         """
         Write the midi file, then call on the system's default midi player. On
         Windows, this is probably Windows Media Player. THIS ONLY WORKS ON 
         WINDOWS, IF YOU WANT TO USE IT YOU MUST CHANGE THE SYSTEM CALL.
+        
+        path: str, where to save the file to. Must end with a "/"!
         """
-        self.writeFile()
-        os.system("start %s" % self.filename)
+        if not path and self.path: path = self.path
+        self.writeFile(path)
+        os.system("start %s" % (self.path+self.filename))
         
     def __str__(self):
         """ Return the string name of the song """

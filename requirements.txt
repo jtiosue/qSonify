@@ -1,2 +1,3 @@
 numpy
 MIDIUtil
+scipy

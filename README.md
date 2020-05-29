@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.com/jiosue/qSonify.svg?branch=master)](https://travis-ci.com/jiosue/qSonify)
+[![Build Status](https://travis-ci.com/jtiosue/qSonify.svg?branch=master)](https://travis-ci.com/jtiosue/qSonify)
 
 # qSonify
 
@@ -7,7 +7,7 @@ For usage, please see the HelloWorld notebook. For info, please see report.pdf. 
 To install from source:
 
 ```shell
-git clone https://github.com/jiosue/qSonify.git
+git clone https://github.com/jtiosue/qSonify.git
 cd qSonify
 pip install -r requirements.txt
 pip install -e .
